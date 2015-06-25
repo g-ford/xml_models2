@@ -4,12 +4,12 @@ to xml, and specifying finders that map to a remote REST service.
 """
 
 import datetime
-import time
 
-import re
 import xpath_finder as xpath
 from common_models import *
 from dateutil.parser import parse as date_parser
+from xpath_finder import MultipleNodesReturnedException
+
 
 class XmlValidationError(Exception):
     pass
@@ -71,6 +71,7 @@ class DateField(BaseField):
 
     If the service returns UTC offsets then a TZ aware datetime object will be returned.
     """
+
     def __init__(self, date_format=None, **kw):
         BaseField.__init__(self, **kw)
         self.date_format = date_format
@@ -144,9 +145,11 @@ class OneToOneField(BaseField):
 
     def parse(self, xml, namespace):
         match = xpath.find_all(xml, self.xpath, namespace)
+        if len(match) > 1:
+            raise MultipleNodesReturnedException
         if len(match) == 1:
             return self.field_type(xml=match[0])
-        return None
+        return self._default
 
 
 class ModelBase(type):
@@ -192,7 +195,6 @@ class Model:
         self._dom = dom
         self._cache = {}
         self.validate_on_load()
-
 
 
     def validate_on_load(self):
