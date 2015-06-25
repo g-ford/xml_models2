@@ -1,14 +1,15 @@
 __doc__ = """
 Based on Django Database backed models, provides a means for mapping models
-to xml, and specifying finders that map to a remote REST service.  For parsing XML
-XPath expressions, xml_models attempts to use lxml if it is available.  If not, it 
-uses pyxml_xpath.  Better performance will be gained by installing lxml.
+to xml, and specifying finders that map to a remote REST service.
 """
 
-import re, datetime, time
-import xpath_twister as xpath
-from common_models import *
+import datetime
+import time
 
+import re
+import xpath_finder as xpath
+from common_models import *
+from dateutil.parser import parse as date_parser
 
 class XmlValidationError(Exception):
     pass
@@ -65,47 +66,21 @@ class DateField(BaseField):
     """
     Returns the single value found by the xpath expression, as a datetime.
 
-    By default, expects dates that match the ISO date format (same as Java JAXB supplies).  If a date_format keyword
-    arg is supplied, that will be used instead.  Uses datetime.strptime under the hood, so the
-    date_format should be defined according to strptime rules.
-    
-    We sometimes get dates that include a UTC offset.  We don't have a nice way to handle these, 
-    so for now we are going to strip the offset and throw it away"""
-    match_utcoffset = re.compile(r"(^.*?)[+|-]\d{2}:\d{2}$")
+    By default, expects dates that match the ISO8601 date format.  If a date_format keyword
+    arg is supplied, that will be used instead. date_format should conform to strptime formatting options.
 
-    def __init__(self, date_format="%Y-%m-%dT%H:%M:%S", **kw):
+    If the service returns UTC offsets then a TZ aware datetime object will be returned.
+    """
+    def __init__(self, date_format=None, **kw):
         BaseField.__init__(self, **kw)
         self.date_format = date_format
 
     def parse(self, xml, namespace):
         value = self._fetch_by_xpath(xml, namespace)
         if value:
-            utc_stripped = self.match_utcoffset.findall(value)
-            if len(utc_stripped) == 1:
-                value = utc_stripped[0]
-            try:
+            if self.date_format:
                 return datetime.datetime.strptime(value, self.date_format)
-            except ValueError, msg:
-                if "%S" in self.date_format:
-                    msg = str(msg)
-                    rematch = re.match(r"unconverted data remains:"
-                                       " \.([0-9]{1,6})$", msg)
-                    if rematch is not None:
-                        frac = "." + rematch.group(1)
-                        value = value[:-len(frac)]
-                        value = datetime.datetime(*time.strptime(value, self.date_format)[0:6])
-                        microsecond = int(float(frac) * 1e6)
-                        return value.replace(microsecond=microsecond)
-                    else:
-                        rematch = re.match(r"unconverted data remains:"
-                                           " \,([0-9]{3,3})$", msg)
-                        if rematch is not None:
-                            frac = "." + rematch.group(1)
-                            value = value[:-len(frac)]
-                            value = datetime.datetime(*time.strptime(value, self.date_format)[0:6])
-                            microsecond = int(float(frac) * 1e6)
-                            return value.replace(microsecond=microsecond)
-                raise
+            return date_parser(value)
         return self._default
 
 
@@ -227,14 +202,9 @@ class Model:
         This is to ensure the xml returned conforms to the validation rules. """
         pass
 
-    def _get_xml(self):
+    def _get_tree(self):
         if self._dom is None:
-            try:
-                self._dom = xpath.domify(self._xml or '<x/>')
-            except Exception, e:
-                print self._xml
-                print str(e)
-                raise e
+            self._dom = xpath.domify(self._xml)
         return self._dom
 
     def _set_value(self, field, value):
@@ -245,5 +215,5 @@ class Model:
             namespace = None
             if hasattr(self, 'namespace'):
                 namespace = self.namespace
-            self._cache[field] = field.parse(self._get_xml(), namespace)
+            self._cache[field] = field.parse(self._get_tree(), namespace)
         return self._cache[field]
