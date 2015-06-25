@@ -1,8 +1,45 @@
-Django REST Model was written in a Test Driven Development style.  For example usages
-please refer to xml_models_test.py
+# XmlModels2
 
-For XPath processing, the py-dom-xpath library is included, but this is a fairly slow
-pure python library.  While it works perfectly well, Django REST Model was written 
-originally to work with LXML, which is a much faster library, and provides better
-namespace support.  If Django REST Model appears slow, try switching to LXML and 
-hopefully you'll experience significant speed improvements.
+XmlModels allows you to define Models similar in nature to Django models that are backed by XML endpoints rather than a
+database.   Using a familiar declarative definition, the fields map to values in the XML document by means of XPath
+expressions. With support for querying external REST APIs using a django-esque approach, we have strived to make
+writing and using xml backed models as close to django database models as we can, within the limitations of the
+available API calls.
+
+# Installation
+
+The simplest approach is to to use `pip install xml_models2`
+
+# A simple example
+
+Just to get started, this is an example of taking an XML representation of an Address that might be returned from a
+GET request to an external REST api.
+
+    <Address id="2">
+      <number>22</number>
+      <street>Acacia Avenue</street>
+      <city>Maiden</city>
+      <country>England</country>
+      <postcode>IM6 66B</postcode>
+    </Address>
+
+    class Address(xml_models.Model):
+      id=xml_models.IntField(xpath="/Address/@id")
+      number = xml_models.IntField(xpath="/Address/number")
+      street = xml_models.CharField(xpath="/Address/street")
+      city = xml_models.CharField(xpath="/Address/city")
+      country = xml_models.CharField(xpath="/Address/country")
+      postcode = xml_models.CharField(xpath="/Address/postcode")
+
+      class Meta:
+        URL = 'http://addresses'
+
+This example would be used as follows:-
+
+    >>> address = Address.objects.get(id=2)
+    >>> print "address is %s, %s" % (address.number, address.street)
+    "22, Acacia Avenue"
+
+# Heritage
+
+This project is a fork of [Django REST Models](http://djangorestmodel.sourceforge.net/)
