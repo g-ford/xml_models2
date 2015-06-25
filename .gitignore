@@ -1,0 +1,21 @@
+# Python specifics
+*.py[cod]
+
+# Environment / Build
+venv/
+reports/
+build/
+dist/
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+
+# IDE stuff
+.idea/

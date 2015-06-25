@@ -1,0 +1,8 @@
+Django REST Model was written in a Test Driven Development style.  For example usages
+please refer to xml_models_test.py
+
+For XPath processing, the py-dom-xpath library is included, but this is a fairly slow
+pure python library.  While it works perfectly well, Django REST Model was written 
+originally to work with LXML, which is a much faster library, and provides better
+namespace support.  If Django REST Model appears slow, try switching to LXML and 
+hopefully you'll experience significant speed improvements.
