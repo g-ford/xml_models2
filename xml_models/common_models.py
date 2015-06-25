@@ -1,6 +1,4 @@
 import rest_client
-from xml.etree import ElementTree as et
-
 
 class ModelManager(object):
     """
@@ -79,7 +77,7 @@ class ModelQuery(object):
 
     def _xml_fragments(self, xml):
         node_to_find = getattr(self.model, 'COLLECTION_NODE')
-        tree = et.iterparse(xml, ['start', 'end'])
+        tree = etree.iterparse(xml, ['start', 'end'])
 
         evt, child = tree.next()
 
@@ -87,7 +85,7 @@ class ModelQuery(object):
             evt, child = tree.next()
 
         for event, elem in tree:
-            result = et.tostring(elem)
+            result = etree.tostring(elem)
             elem.clear()
             yield result
 
