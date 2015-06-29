@@ -21,6 +21,10 @@ XML = objectify.fromstring("""
 
 
 class BaseFieldTests(unittest.TestCase):
+    def test_raises_when_xpath_is_missing(self):
+        with self.assertRaises(Exception):
+            xml_models.BaseField()
+
     def test_can_read_from_innertext(self):
         field = xml_models.BaseField(xpath='/root/kiddie/char')
         response = field._fetch_by_xpath(XML, None)
@@ -68,6 +72,11 @@ class IntFieldTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             field = xml_models.IntField(xpath='/root/kiddie/char')
             response = field.parse(XML, None)
+
+    def test_may_have_a_default(self):
+        field = xml_models.CharField(xpath='/root/kiddie/int2', default=-1)
+        response = field.parse(XML, None)
+        self.assertEquals(-1, response)
 
 
 class FloatFieldTests(unittest.TestCase):
@@ -152,7 +161,6 @@ class DateFieldTests(unittest.TestCase):
 
 
 class OneToOneFieldTests(unittest.TestCase):
-
     class SubModel(xml_models.Model):
         name = xml_models.CharField(xpath='/sub/name')
 
@@ -186,88 +194,56 @@ class OneToOneFieldTests(unittest.TestCase):
         self.assertEqual(default, response)
 
 
-class Address(xml_models.Model):
-    number = xml_models.IntField(xpath='/address/number')
-    street = xml_models.CharField(xpath='/address/street')
-    city = xml_models.CharField(xpath='/address/city')
-    foobars = xml_models.CollectionField(xml_models.CharField, xpath='/address/foobar')
+class CollectionFieldTests(unittest.TestCase):
+    class SubModel(xml_models.Model):
+        name = xml_models.CharField(xpath='/sub/name')
 
-    finders = {(number,): "http://address/number/%s",
-               (number, street): "http://address/number/%s/street/%s",
-               (city,): "http://localhost:8998/address/%s",
-               (street, 'stringfield'): "http://address/street/%s/stringfield/%s"
-    }
+    def test_returns_expected_number_of_correctly_typed_results(self):
+        xml_string = '<master><sub><name>fred</name></sub><sub><name>jill</name></sub></master>'
+        xml = objectify.fromstring(xml_string)
+
+        field = xml_models.CollectionField(CollectionFieldTests.SubModel, xpath='/master/sub')
+        response = field.parse(xml, None)
+
+        self.assertEqual(2, len(response))
+        for sub in response:
+            self.assertTrue(isinstance(sub, CollectionFieldTests.SubModel))
+
+    def test_orders_by_throws_if_unknown(self):
+        xml_string = '<master><sub><name>fred</name></sub><sub><name>jill</name></sub><sub><name>alice</name></sub></master>'
+        xml = objectify.fromstring(xml_string)
+
+        field = xml_models.CollectionField(CollectionFieldTests.SubModel, xpath='/master/sub', order_by='not_real')
+        with self.assertRaises(AttributeError):
+            field.parse(xml, None)
+
+    def test_order_by_supplied_attribute_of_user_model_types(self):
+        xml_string = '<master><sub><name>fred</name></sub><sub><name>jill</name></sub><sub><name>alice</name></sub></master>'
+        xml = objectify.fromstring(xml_string)
+
+        field = xml_models.CollectionField(CollectionFieldTests.SubModel, xpath='/master/sub', order_by='name')
+        response = field.parse(xml, None)
+
+        self.assertEqual(3, len(response))
+        self.assertEqual([e.name for e in response], ['alice', 'fred', 'jill'])
+
+    def test_returns_empty_collection_when_empty(self):
+        xml_string = '<master></master>'
+        xml = objectify.fromstring(xml_string)
+
+        field = xml_models.CollectionField(CollectionFieldTests.SubModel, xpath='/master/sub', order_by='name')
+        response = field.parse(xml, None)
+
+        self.assertEqual([], response)
 
 
-class MyModel(xml_models.Model):
-    muppet_name = xml_models.CharField(xpath='/root/kiddie/value')
-    muppet_type = xml_models.CharField(xpath='/root/kiddie/type', default='frog')
-    muppet_names = xml_models.CollectionField(xml_models.CharField, xpath='/root/kiddie/value')
-    muppet_ages = xml_models.CollectionField(xml_models.IntField, xpath='/root/kiddie/age')
-    muppet_addresses = xml_models.CollectionField(Address, xpath='/root/kiddie/address', order_by='number')
-
-    finders = {
-        (muppet_name,): "http://foo.com/muppets/%s"
-    }
-
-
-# def test_one_to_one_returns_sub_component(self):
-# my_model = MasterModel(xml="<master><sub><name>fred</name></sub></master>")
-# self.assertEquals("fred", my_model.sub_model.name)
-
-#     def test_collection_returns_expected_number_of_correcty_typed_results(self):
-#         my_model = MyModel('<root><kiddie><value>Rowlf</value><value>Kermit</value><value>Ms.Piggy</value></kiddie></root>')
-#         self.assertTrue('Rowlf' in my_model.muppet_names)
-#         self.assertTrue('Kermit' in my_model.muppet_names)
-#         self.assertTrue('Ms.Piggy' in my_model.muppet_names)    
-
-#     def test_collection_returns_expected_number_of_integer_results(self):
-#         my_model = MyModel('<root><kiddie><age>10</age><age>5</age><age>7</age></kiddie></root>')
-#         self.assertTrue(5 in my_model.muppet_ages)
-#         self.assertTrue(7 in my_model.muppet_ages)
-#         self.assertTrue(10 in my_model.muppet_ages)
-
-#     def test_collection_returns_user_model_types(self):
-#         my_model = MyModel('<root><kiddie><address><number>10</number><street>1st Ave. South</street><city>MuppetVille</city><foobar>foo</foobar><foobar>bar</foobar></address><address><number>5</number><street>Mockingbird Lane</street><city>Bedrock</city></address></kiddie></root>')
-#         self.assertEquals(2,len(my_model.muppet_addresses))
-#         address1 = my_model.muppet_addresses[0]
-#         self.assertEquals(5, address1.number)
-#         self.assertEquals('Mockingbird Lane', address1.street)
-#         self.assertEquals('Bedrock', address1.city)
-#         address2 = my_model.muppet_addresses[1]
-#         self.assertEquals(10, address2.number)
-#         self.assertEquals('1st Ave. South', address2.street)
-#         self.assertEquals('MuppetVille', address2.city)
-#         self.assertEquals('foo', address2.foobars[0])
-#         self.assertEquals('bar', address2.foobars[1])
-
-#     def test_collection_orders_by_supplied_attribute_of_user_model_types(self):
-#         my_model = MyModel('<root><kiddie><address><number>10</number><street>1st Ave. South</street><city>MuppetVille</city><foobar>foo</foobar><foobar>bar</foobar></address><address><number>5</number><street>Mockingbird Lane</street><city>Bedrock</city></address></kiddie></root>')
-#         self.assertEquals(2,len(my_model.muppet_addresses))
-#         address1 = my_model.muppet_addresses[0]
-#         self.assertEquals(5, address1.number)
-#         address2 = my_model.muppet_addresses[1]
-#         self.assertEquals(10, address2.number)
-
-#     def test_collection_empty_collection_returned_when_xml_not_found(self):
-#         my_model = MyModel('<root><kiddie><address><number>10</number><street>1st Ave. South</street><city>MuppetVille</city></address><address><number>5</number><street>Mockingbird Lane</street><city>Bedrock</city></address></kiddie></root>')
-#         self.assertEquals([], my_model.muppet_addresses[0].foobars)
 
 #     def test_use_a_default_namespace(self):
 #         nsModel = NsModel("<root xmlns='urn:test:namespace'><name>Finbar</name><age>47</age></root>")
 #         self.assertEquals('Finbar', nsModel.name)
 #         self.assertEquals(47, nsModel.age)
 
-#     def test_model_fields_are_settable(self):
-#         my_model = MyModel('<root><kiddie><value>Gonzo</value><address><number>10</number><street>1st Ave. South</street><city>MuppetVille</city></address><address><number>5</number><street>Mockingbird Lane</street><city>Bedrock</city></address></kiddie></root>')
-#         my_model.muppet_name = 'Fozzie'
-#         self.assertEquals('Fozzie', my_model.muppet_name)
 
-#     def test_collection_fields_can_be_appended_to(self):
-#         my_model = MyModel('<root><kiddie><value>Gonzo</value><address><number>10</number><street>1st Ave. South</street><city>MuppetVille</city></address><address><number>5</number><street>Mockingbird Lane</street><city>Bedrock</city></address></kiddie></root>')
-#         my_model.muppet_names.append('Fozzie')
-#         self.assertTrue('Fozzie' in my_model.muppet_names)
-#         self.assertTrue('Gonzo' in my_model.muppet_names)
 
 #     def test_manager_noregisteredfindererror_raised_when_filter_on_non_existent_field(self):
 #         try:
@@ -438,12 +414,6 @@ class MyModel(xml_models.Model):
 #         except SesameStreetCharacter:
 #             pass
 
-#     def test_headers_field_specified_on_model_is_added_to_the_query_manager(self):
-#         self.assertTrue(Simple.objects.headers != None)
-#         self.assertEquals('user1', Simple.objects.headers['user'])
-#         query = Simple.objects.filter(field1="Rhubarb")
-#         self.assertTrue(query.headers != None)
-#         self.assertEquals('pwd1', query.headers['password'])
 
 # class FunctionalTest(unittest.TestCase):
 #     def setUp(self):

@@ -1,4 +1,6 @@
+from lxml import etree
 import rest_client
+
 
 class ModelManager(object):
     """

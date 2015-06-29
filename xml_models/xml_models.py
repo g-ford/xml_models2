@@ -6,7 +6,7 @@ to xml, and specifying finders that map to a remote REST service.
 import datetime
 
 import xpath_finder as xpath
-from common_models import *
+from managers import *
 from dateutil.parser import parse as date_parser
 from xpath_finder import MultipleNodesReturnedException
 
