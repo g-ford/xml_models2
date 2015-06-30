@@ -201,7 +201,9 @@ class Model:
         """
         Override on your model to perform validation when the XML data is first passed in.
 
-        This is to ensure the xml returned conforms to the validation rules. """
+        This is to ensure the xml returned conforms to the validation rules.
+
+        You will need to raise appropriate exceptions as no checking of the return value occurs"""
         pass
 
     def _get_tree(self):

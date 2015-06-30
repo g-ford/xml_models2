@@ -54,7 +54,7 @@ class ModelQuery(object):
 
     def count(self):
         response = rest_client.Client("").GET(self._find_query_path(), headers=self.headers)
-        return len(list(self._xml_fragments(response.content)))
+        return len(list(self._fragments(response.content)))
 
     def __iter__(self):
         response = rest_client.Client("").GET(self._find_query_path(), headers=self.headers)
@@ -77,8 +77,8 @@ class ModelQuery(object):
 
         return self.model(content)
 
-    def _xml_fragments(self, xml):
-        node_to_find = getattr(self.model, 'COLLECTION_NODE')
+    def _fragments(self, xml):
+        node_to_find = getattr(self.model, 'COLLECTION_NODE', None)
         tree = etree.iterparse(xml, ['start', 'end'])
 
         evt, child = tree.next()
@@ -86,10 +86,14 @@ class ModelQuery(object):
         while node_to_find and child.tag != node_to_find:
             evt, child = tree.next()
 
+        evt, child = tree.next()
+
+        node_name = child.tag
         for event, elem in tree:
-            result = etree.tostring(elem)
-            elem.clear()
-            yield result
+            if event == 'end' and elem.tag == node_name:
+                result = etree.tostring(elem)
+                elem.clear()
+                yield result
 
     def _find_query_path(self):
         if self.custom_url:
