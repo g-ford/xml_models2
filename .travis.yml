@@ -4,6 +4,11 @@ python:
   - "3.3"
   - "3.4"
   - "nightly"
-install: "pip install -r requirements.txt"
-script: nosetests
+install:
+  - pip install -r requirements.txt
+  - pip install coveralls
+script:
+  coverage run --source=xml_models setup.py test
 cache: pip
+after_success:
+  coveralls
