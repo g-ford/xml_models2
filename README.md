@@ -34,8 +34,7 @@ GET request to an external REST api.
       country = xml_models.CharField(xpath="/Address/country")
       postcode = xml_models.CharField(xpath="/Address/postcode")
 
-      class Meta:
-        URL = 'http://addresses'
+      finders = {(id,): 'http://adresses/%s'}
 
 This example would be used as follows:-
 
