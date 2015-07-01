@@ -204,6 +204,24 @@ class Model(with_metaclass(ModelBase)):
         You will need to raise appropriate exceptions as no checking of the return value occurs"""
         pass
 
+    def _update_attribute(self, field):
+        parts = field.xpath.split('/')
+        xpath = "/".join(parts[:-1])  # totally assuming attributes are in the last place
+        attr = parts[-1].replace('@', '')
+
+        self._get_tree().xpath(xpath)[0].attrib[attr] = str(getattr(self, field._name))
+
+    def _update_field(self, field):
+        if '@' in field.xpath:
+            self._update_attribute(field)
+        else:
+            self._get_tree().xpath(field.xpath)[0].text = getattr(self, field._name)
+
+    def to_xml(self):
+        for field in self._cache:
+            self._update_field(field)
+        return etree.tostring(self._get_tree(), pretty_print=True).decode('UTF-8')
+
     def _get_tree(self):
         if self._dom is None:
             self._dom = xpath.domify(self._xml)
