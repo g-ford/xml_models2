@@ -216,7 +216,7 @@ class QueryManagerTestCases(unittest.TestCase):
 
         with self.assertRaises(MultipleNodesReturnedException):
             qry = NestedModel.objects.get(field1='a')
-        
+
 
     @patch.object(rest_client.Client, "GET")
     def test_can_specify_collection_node_when_filtering(self, mock_get):
