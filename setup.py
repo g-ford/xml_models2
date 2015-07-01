@@ -2,7 +2,7 @@
 
 from setuptools import setup
 
-setup(name='xml_models',
+setup(name='xml_models2',
       version='0.7.0',
       description='XML backed models queried from external REST apis',
       author='Geoff Ford and Chris Tarttelin and Cam McHugh',
