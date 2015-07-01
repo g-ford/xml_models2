@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/alephnullplex/xml_models2.svg?branch=master)](https://travis-ci.org/alephnullplex/xml_models2)
+[![Coverage Status](https://coveralls.io/repos/alephnullplex/xml_models2/badge.svg?branch=master)](https://coveralls.io/r/alephnullplex/xml_models2?branch=master)
 
 # XmlModels2
 
