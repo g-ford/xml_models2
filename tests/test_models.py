@@ -41,5 +41,3 @@ class BaseModelTestCases(unittest.TestCase):
         muppet.friends.append('Kermit')
         self.assertTrue('Fozzie' in muppet.friends)
         self.assertTrue('Kermit' in muppet.friends)
-
-

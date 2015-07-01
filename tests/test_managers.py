@@ -1,4 +1,6 @@
 import unittest
+from xml_models.xpath_finder import MultipleNodesReturnedException
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -19,6 +21,14 @@ class SimpleModel(xml_models.Model):
 
 
     headers = {'user': 'user1', 'password': 'pwd1'}
+
+
+class NestedModel(xml_models.Model):
+    field1 = xml_models.CharField(xpath='/root/field1')
+    collection_node = 'elems'
+    finders = {
+        (field1,): "http://foo.com/simple/%s",
+    }
 
 
 class ModelManagerTestCases(unittest.TestCase):
@@ -111,20 +121,20 @@ class QueryManagerTestCases(unittest.TestCase):
 
     @patch.object(rest_client.Client, "GET")
     def test_raises_error_when_repsonse_empty(self, mock_get):
-        class t:
+        class api:
             content = StringIO(''.encode())
             response_code = 200
-        mock_get.return_value = t()
+        mock_get.return_value = api()
 
         with self.assertRaises(DoesNotExist):
             SimpleModel.objects.get(field1="baz")
 
     @patch.object(rest_client.Client, "GET")
     def test_raises_error_when_response_code_404(self, mock_get):
-        class t:
+        class api:
             content = StringIO('<HTML><body>Nothing to see here</body></HTML>'.encode())
             response_code = 404
-        mock_get.return_value = t()
+        mock_get.return_value = api()
 
         with self.assertRaises(DoesNotExist):
             SimpleModel.objects.get(field1="baz")
@@ -132,9 +142,9 @@ class QueryManagerTestCases(unittest.TestCase):
 
     @patch.object(rest_client.Client, "GET")
     def test_returns_iterator_for_collection_of_results(self, mock_get):
-        class t:
+        class api:
             content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
-        mock_get.return_value = t()
+        mock_get.return_value = api()
         qry = SimpleModel.objects.filter(field1="baz")
         results = []
         for mod in qry:
@@ -145,10 +155,10 @@ class QueryManagerTestCases(unittest.TestCase):
 
     @patch.object(rest_client.Client, "GET")
     def test_can_use_custom_query(self, mock_get):
-        class t:
+        class api:
             content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
             response_code = 200
-        mock_get.return_value = t()
+        mock_get.return_value = api()
 
         SimpleModel.objects.filter_custom("http://hard_coded_url").get()
 
@@ -156,9 +166,9 @@ class QueryManagerTestCases(unittest.TestCase):
 
     @patch.object(rest_client.Client, "GET")
     def test_returns_iterator_for_collection_of_results_from_custom_query(self, mock_get):
-        class t:
+        class api:
             content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
-        mock_get.return_value = t()
+        mock_get.return_value = api()
         qry = SimpleModel.objects.filter_custom("http://hard_coded_url")
         results = []
         for mod in qry:
@@ -168,10 +178,59 @@ class QueryManagerTestCases(unittest.TestCase):
         self.assertEquals("goodbye", results[1].field1)
 
     @patch.object(rest_client.Client, "GET")
-    def test_returns_count_of_collection_of_results_when_len_is_called(self, mock_get):
-        class t:
+    def test_supports_listifying(self, mock_get):
+        class api:
             content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
-        mock_get.return_value = t()
+        mock_get.return_value = api()
+        qry = SimpleModel.objects.filter_custom("http://hard_coded_url")
+        results = list(qry)
+        self.assertEquals(2, len(results))
+        self.assertEquals("hello", results[0].field1)
+        self.assertEquals("goodbye", results[1].field1)
+
+    @patch.object(rest_client.Client, "GET")
+    def test_returns_count_of_collection_of_results_when_len_is_called(self, mock_get):
+        class api:
+            content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
+        mock_get.return_value = api()
         qry = SimpleModel.objects.filter(field1="baz")
         self.assertEquals(2, len(qry))
+
+    @patch.object(rest_client.Client, "GET")
+    def test_can_specify_collection_node_when_get(self, mock_get):
+        class api:
+            content = StringIO("<response><metadata /><elems><root><field1>hello</field1></root></elems></response>".encode())
+            response_code = 200
+        mock_get.return_value = api()
+
+        qry = NestedModel.objects.get(field1='a')
+        self.assertIsInstance(qry, NestedModel)
+        self.assertEqual('hello', qry.field1)
+
+    @patch.object(rest_client.Client, "GET")
+    def test_get_with_multiple_collection_node_results_raises(self, mock_get):
+        class api:
+            content = StringIO("<response><metadata /><elems><root><field1>hello</field1></root><root><field1>hello</field1></root></elems></response>".encode())
+            response_code = 200
+        mock_get.return_value = api()
+
+        with self.assertRaises(MultipleNodesReturnedException):
+            qry = NestedModel.objects.get(field1='a')
+        
+
+    @patch.object(rest_client.Client, "GET")
+    def test_can_specify_collection_node_when_filtering(self, mock_get):
+        class api:
+            content = StringIO("<response><metadata /><elems><root><field1>hello</field1></root></elems></response>".encode())
+            response_code = 200
+        mock_get.return_value = api()
+
+        qry = NestedModel.objects.filter(field1='a')
+        results = []
+        for mod in qry:
+            results.append(mod)
+        self.assertIsInstance(results[0], NestedModel)
+        self.assertEqual('hello', results[0].field1)
+
+        
 

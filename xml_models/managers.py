@@ -1,15 +1,17 @@
 from __future__ import absolute_import
 import xml_models.rest_client as rest_client
 from lxml import etree
+from xml_models.xpath_finder import MultipleNodesReturnedException
+
 
 class ModelManager(object):
     """
     Handles what can be queried for, and acts as the entry point for querying.
 
-    There is an instance per model that is used in the django style of Model.objects.get(attr1=value, attr2=value2)
+    There is an instance per model class that is used in the django style of Model.objects.get(attr1=value, attr2=value2)
     for single results, or Model.objects.filter(attr1=value1,attr2=value2) for multiple results.  As with Django, you
     can chain filters together, i.e. Model.objects.filter(attr1=value1).filter(attr2=value2)  Filter is not evaluated
-    until you try to iterate over the results or get a count of the results.
+    until you try to iterate, get or count the results.
     """
 
     def __init__(self, model, finders):
@@ -43,6 +45,12 @@ class ModelQuery(object):
         self.headers = headers
         self.custom_url = None
 
+
+        # When calling list(query) list will call __count__ before __iter__, both of which will call _fetch & _fragments.
+        # We keep a cache of fetched URLs and parsed out fragments so as to prevent fetching and parsing the tree twice.
+        self.__fragment_cache = []
+        self.__fetch_cache = {}
+
     def filter(self, **kw):
         for key in kw.keys():
             self.args[key] = kw[key]
@@ -53,11 +61,11 @@ class ModelQuery(object):
         return self
 
     def count(self):
-        response = rest_client.Client("").GET(self._find_query_path(), headers=self.headers)
+        response = self._fetch()
         return len(list(self._fragments(response.content)))
 
     def __iter__(self):
-        response = rest_client.Client("").GET(self._find_query_path(), headers=self.headers)
+        response = self._fetch()
         for fragment in self._fragments(response.content):
             yield self.model(fragment)
 
@@ -67,7 +75,7 @@ class ModelQuery(object):
     def get(self, **kw):
         for key in kw.keys():
             self.args[key] = kw[key]
-        response = rest_client.Client("").GET(self._find_query_path(), headers=self.headers)
+        response = self._fetch()
         if not response.content or response.response_code == 404:
             raise DoesNotExist(self.model, self.args)
 
@@ -75,10 +83,30 @@ class ModelQuery(object):
         if not content:
             raise DoesNotExist(self.model, self.args)
 
+        node_to_find = getattr(self.model, 'collection_node', None)
+        if node_to_find:
+            tree = etree.fromstring(content)
+            node = tree.find('.//' + node_to_find).getchildren()
+            if len(node) > 1:
+                raise MultipleNodesReturnedException
+            content = etree.tostring(node[0])
+
         return self.model(content)
 
+    def _fetch(self):
+        # the caching here may be better handled with requests caching?
+        url = self._find_query_path()
+        if not url in self.__fetch_cache:
+            self.__fetch_cache[url] = rest_client.Client("").GET(url, headers=self.headers)
+        return self.__fetch_cache[url]
+
     def _fragments(self, xml):
-        node_to_find = getattr(self.model, 'COLLECTION_NODE', None)
+        if len(self.__fragment_cache):
+            for item in self.__fragment_cache:
+                yield item
+            return
+
+        node_to_find = getattr(self.model, 'collection_node', None)
         tree = etree.iterparse(xml, ['start', 'end'])
 
         evt, child = next(tree)
@@ -93,6 +121,7 @@ class ModelQuery(object):
             if event == 'end' and elem.tag == node_name:
                 result = etree.tostring(elem)
                 elem.clear()
+                self.__fragment_cache.append(result)
                 yield result
 
     def _find_query_path(self):
