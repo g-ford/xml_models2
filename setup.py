@@ -9,6 +9,6 @@ setup(name='xml_models',
       author_email='g_ford@hotmail.ccom',
       url='http://github.com/alephnullplex/xml_models',
       packages=['rest_client', 'xml_models'],
-      install_requires=['lxml', 'python-dateutil', 'pytz'],
-      tests_require=['mock', 'coverage']
+      install_requires=['lxml', 'python-dateutil', 'pytz', 'future', 'requests'],
+      tests_require=['mock']
       )

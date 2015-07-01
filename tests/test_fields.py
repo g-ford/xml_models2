@@ -1,7 +1,10 @@
 import unittest
 import xml_models
 from mock import patch
-from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 from lxml import objectify
 import datetime
 from xml_models.xpath_finder import MultipleNodesReturnedException
@@ -131,7 +134,7 @@ class DateFieldTests(unittest.TestCase):
         xml = objectify.fromstring(xml_string)
         field = xml_models.DateField(xpath='/root/kiddie/value')
         response = field.parse(xml, None)
-        date = datetime.datetime(2008, 06, 21, 10, 36, 12)
+        date = datetime.datetime(2008, 6, 21, 10, 36, 12)
         self.assertEquals(date, response)
 
     def test_handles_utc_offset(self):
@@ -141,7 +144,7 @@ class DateFieldTests(unittest.TestCase):
         xml = objectify.fromstring(xml_string)
         field = xml_models.DateField(xpath='/root/kiddie/value')
         response = field.parse(xml, None)
-        date = pytz.UTC.localize(datetime.datetime(2008, 06, 21, 16, 36, 12))
+        date = pytz.UTC.localize(datetime.datetime(2008, 6, 21, 16, 36, 12))
         self.assertEquals(date, response)
 
     def test_returns_none_when_the_node_is_empty(self):
@@ -156,7 +159,7 @@ class DateFieldTests(unittest.TestCase):
         xml = objectify.fromstring(xml_string)
         field = xml_models.DateField(xpath='/root/kiddie/value', date_format="%Y%m%d-%H:%M:%S")
         response = field.parse(xml, None)
-        date = datetime.datetime(2008, 06, 21, 10, 36, 12)
+        date = datetime.datetime(2008, 6, 21, 10, 36, 12)
         self.assertEquals(date, response)
 
 

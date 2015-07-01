@@ -1,5 +1,14 @@
 from lxml import etree
 
+import sys
+if sys.version < '3':
+    import codecs
+    def unicode(x):
+        return codecs.unicode_escape_decode(x)[0]
+else:
+    def unicode(x):
+        return x
+
 
 class MultipleNodesReturnedException(Exception):
     pass

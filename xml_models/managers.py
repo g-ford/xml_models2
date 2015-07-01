@@ -1,6 +1,6 @@
+from __future__ import absolute_import
+import xml_models.rest_client as rest_client
 from lxml import etree
-import rest_client
-
 
 class ModelManager(object):
     """
@@ -81,12 +81,12 @@ class ModelQuery(object):
         node_to_find = getattr(self.model, 'COLLECTION_NODE', None)
         tree = etree.iterparse(xml, ['start', 'end'])
 
-        evt, child = tree.next()
+        evt, child = next(tree)
 
         while node_to_find and child.tag != node_to_find:
-            evt, child = tree.next()
+            evt, child = next(tree)
 
-        evt, child = tree.next()
+        evt, child = next(tree)
 
         node_name = child.tag
         for event, elem in tree:
@@ -100,7 +100,7 @@ class ModelQuery(object):
             return self.custom_url
 
         keys = self.args.keys()
-        keys.sort()
+        keys = sorted(keys)
         key_tuple = tuple(keys)
         try:
             (url, attrs) = self.manager.finders[key_tuple]

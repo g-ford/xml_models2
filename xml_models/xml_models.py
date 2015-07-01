@@ -5,10 +5,12 @@ to xml, and specifying finders that map to a remote REST service.
 
 import datetime
 
-import xpath_finder as xpath
-from managers import *
+try:
+    import xpath_finder as xpath
+except ImportError:
+    import xml_models.xpath_finder as xpath
+from .managers import *
 from dateutil.parser import parse as date_parser
-from xpath_finder import MultipleNodesReturnedException
 
 
 class XmlValidationError(Exception):
@@ -26,20 +28,12 @@ class BaseField:
             raise Exception('No XPath supplied for xml field')
         self.xpath = kw['xpath']
         self._default = kw.pop('default', None)
-        self.__cached_value = None
 
     def _fetch_by_xpath(self, xml_doc, namespace):
         find = xpath.find_unique(xml_doc, self.xpath, namespace)
         if find is None:
             return self._default
         return find
-
-    def _parse(self, xml, namespace):
-        if not self.__cached_value:
-            self.__cached_value = self.parse(xml, namespace)
-
-        return self.__cached_value
-
 
 class CharField(BaseField):
     """
@@ -134,7 +128,8 @@ class CollectionField(BaseField):
             field = self.field_type(xpath='.')
             results = [field.parse(xpath.domify(match), namespace) for match in matches]
         if self.order_by:
-            results.sort(lambda a, b: cmp(getattr(a, self.order_by), getattr(b, self.order_by)))
+            from operator import attrgetter
+            results.sort(key=attrgetter(self.order_by))
         return results
 
 
@@ -146,7 +141,7 @@ class OneToOneField(BaseField):
     def parse(self, xml, namespace):
         match = xpath.find_all(xml, self.xpath, namespace)
         if len(match) > 1:
-            raise MultipleNodesReturnedException
+            raise xpath.MultipleNodesReturnedException
         if len(match) == 1:
             return self.field_type(xml=match[0])
         return self._default
@@ -157,28 +152,31 @@ class ModelBase(type):
     Meta class for declarative xml_model building
     """
 
-    def __init__(cls, name, bases, attrs):
+    def __new__(cls, name, bases, attrs):
+        new_class = super(ModelBase, cls).__new__(cls, name, bases, attrs)
         xml_fields = [field_name for field_name in attrs.keys() if isinstance(attrs[field_name], BaseField)]
         for field_name in xml_fields:
-            setattr(cls, field_name, cls._get_xpath(field_name, attrs[field_name]))
+            setattr(new_class, field_name, new_class._get_xpath(field_name, attrs[field_name]))
             attrs[field_name]._name = field_name
         if "finders" in attrs:
-            setattr(cls, "objects", ModelManager(cls, attrs["finders"]))
+            setattr(new_class, "objects", ModelManager(new_class, attrs["finders"]))
         else:
-            setattr(cls, "objects", ModelManager(cls, {}))
+            setattr(new_class, "objects", ModelManager(new_class, {}))
         if "headers" in attrs:
-            setattr(cls.objects, "headers", attrs["headers"])
+            setattr(new_class.objects, "headers", attrs["headers"])
+        return new_class
 
     def _get_xpath(cls, field_name, field_impl):
         return property(fget=lambda cls: cls._parse_field(field_impl),
                         fset=lambda cls, value: cls._set_value(field_impl, value))
 
 
-class Model:
+from future.utils import with_metaclass
+class Model(with_metaclass(ModelBase)):
     __metaclass__ = ModelBase
     __doc__ = """
     A model can be constructed with either an xml string, or an appropriate document supplied by
-    the xpath_twister.domify() method.
+    the lxml.objectify() method.
     
     An example:
     
@@ -216,8 +214,6 @@ class Model:
 
     def _parse_field(self, field):
         if field not in self._cache:
-            namespace = None
-            if hasattr(self, 'namespace'):
-                namespace = self.namespace
+            namespace = getattr(self, 'namespace', None)
             self._cache[field] = field.parse(self._get_tree(), namespace)
         return self._cache[field]
