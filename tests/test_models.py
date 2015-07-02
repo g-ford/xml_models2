@@ -72,6 +72,28 @@ class BaseModelTestCases(unittest.TestCase):
         m.field1 = 2
         self.assertEqual(strip_whitespace(m.to_xml()), '<root><child><value count="2">Fred</value></child></root>\n')
 
+    def test_can_get_altered_submodels_xml_back_out(self):
+        class ModelB(xml_models.Model):
+            name = xml_models.CharField(xpath='/modelb/name')
+
+        class ModelA(xml_models.Model):
+            name = xml_models.CharField(xpath='/root/name')
+            modelb = xml_models.OneToOneField(ModelB, xpath='//modelb')
+
+
+        m = ModelA('<root><name>Model 1</name><modelb><name>Model 2</name></modelb></root>')
+        m.name = 'Model One'
+        m.modelb.name = 'Model Two'
+        self.assertEqual(strip_whitespace(m.to_xml()), '<root><name>Model One</name><modelb><name>Model Two</name></modelb></root>\n')
+
+    def test_can_get_altered_collection_xml_back_out(self):
+        class CollectionModel(xml_models.Model):
+            names = xml_models.CollectionField(xml_models.CharField, xpath='/root/names/name')
+
+        m = CollectionModel('<root><names><name>Model 1</name><name>Model 2</name></names></root>')
+        m.names[0] = 'Model One'
+        self.assertEqual(strip_whitespace(m.to_xml()), '<root><names><name>Model One</name><name>Model 2</name></names></root>\n')
+
 
 
 def strip_whitespace(xml):

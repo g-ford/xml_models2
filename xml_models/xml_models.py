@@ -211,9 +211,24 @@ class Model(with_metaclass(ModelBase)):
 
         self._get_tree().xpath(xpath)[0].attrib[attr] = str(getattr(self, field._name))
 
+    def _update_subtree(self, field):
+        new_tree = etree.fromstring(getattr(self, field._name).to_xml())
+        old_tree = self._get_tree().xpath(field.xpath)[0]
+        self._get_tree().replace(old_tree, new_tree)
+
+    def _update_collection(self, field):
+        new_values = getattr(self, field._name)
+        old_values = self._get_tree().xpath(field.xpath)
+        for old, new in zip(old_values, new_values):
+            old.text = new
+
     def _update_field(self, field):
         if '@' in field.xpath:
             self._update_attribute(field)
+        elif isinstance(field, CollectionField):
+            self._update_collection(field)
+        elif isinstance(field, OneToOneField):
+            self._update_subtree(field)
         else:
             self._get_tree().xpath(field.xpath)[0].text = getattr(self, field._name)
 
