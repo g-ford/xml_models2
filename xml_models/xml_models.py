@@ -1,8 +1,3 @@
-__doc__ = """
-Based on Django Database backed models, provides a means for mapping models
-to xml, and specifying finders that map to a remote REST service.
-"""
-
 import datetime
 
 try:
@@ -62,7 +57,7 @@ class DateField(BaseField):
     Returns the single value found by the xpath expression, as a datetime.
 
     By default, expects dates that match the ISO8601 date format.  If a date_format keyword
-    arg is supplied, that will be used instead. date_format should conform to strptime formatting options.
+    arg is supplied, that will be used instead. date_format should conform to :method:`strptime` formatting options.
 
     If the service returns UTC offsets then a TZ aware datetime object will be returned.
     """
@@ -178,19 +173,23 @@ from future.utils import with_metaclass
 
 
 class Model(with_metaclass(ModelBase)):
-    __metaclass__ = ModelBase
-    __doc__ = """
-    A model can be constructed with either an xml string, or an appropriate document supplied by
-    the lxml.objectify() method.
+    """
+    A model is a representation of the XML source, consisting of a number of Fields. It can be constructed with
+    either an xml string, or an :class:`etree.Element`.
     
-    An example:
+    :Example:
+
+    .. code-block:: python
     
-    class Person(xml_models.Model):
-        namespace="urn:my.default.namespace"
-        name = xml_models.CharField(xpath"/Person/@Name", default="John")
-        nicknames = xml_models.CollectionField(CharField, xpath="/Person/Nicknames/Name")
-        addresses = xml_models.CollectionField(Address, xpath="/Person/Addresses/Address")
-        date_of_birth = xml_models.DateField(xpath="/Person/@DateOfBirth", date_format="%d-%m-%Y")
+        class Person(xml_models.Model):
+            namespace="urn:my.default.namespace"
+            name = xml_models.CharField(xpath"/Person/@Name", default="John")
+            nicknames = xml_models.CollectionField(CharField, xpath="/Person/Nicknames/Name")
+            addresses = xml_models.CollectionField(Address, xpath="/Person/Addresses/Address")
+            date_of_birth = xml_models.DateField(xpath="/Person/@DateOfBirth", date_format="%d-%m-%Y")
+
+    If you define :ref:`finders` on your model you will also be able to retreive models from an API endpoint using
+    a familiar Django-esque object manager style of access with chainable filtering etc.
     """
 
     def __init__(self, xml=None, dom=None):
@@ -202,17 +201,19 @@ class Model(with_metaclass(ModelBase)):
 
     def validate_on_load(self):
         """
+        Perform validation when the model is instantiated.
+
         Override on your model to perform validation when the XML data is first passed in.
 
-        This is to ensure the xml returned conforms to the validation rules.
-
-        You will need to raise appropriate exceptions as no checking of the return value occurs"""
+        .. note:: You will need to raise appropriate exceptions as no checking of the return value occurs
+        """
         pass
 
     def to_tree(self):
         """
-        ElementTree representation of Model
-        :return: ElementTree
+        :class:`etree.Element` representation of :class:`Model`
+
+        :rtype: :class:`lxml.etree.Element`
         """
         for field in self._cache:
             self._update_field(field)
@@ -221,7 +222,8 @@ class Model(with_metaclass(ModelBase)):
     def to_xml(self):
         """
         XML representation of Model
-        :return: string
+
+        :rtype: string
         """
         return etree.tostring(self.to_tree(), pretty_print=True).decode('UTF-8')
 
@@ -280,6 +282,7 @@ class Model(with_metaclass(ModelBase)):
     def _update_collection(self, field):
         """
         Update _dom with all the items in a CollectionField value
+
         :param field: CollectionField
         """
         try:
@@ -315,6 +318,7 @@ class Model(with_metaclass(ModelBase)):
     def _update_field(self, field):
         """
         Update _dom with value from field
+
         :param field: BaseField
         :return:
         """

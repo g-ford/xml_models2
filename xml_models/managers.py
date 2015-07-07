@@ -8,10 +8,9 @@ class ModelManager(object):
     """
     Handles what can be queried for, and acts as the entry point for querying.
 
-    There is an instance per model class that is used in the django style of Model.objects.get(attr1=value, attr2=value2)
-    for single results, or Model.objects.filter(attr1=value1,attr2=value2) for multiple results.  As with Django, you
-    can chain filters together, i.e. Model.objects.filter(attr1=value1).filter(attr2=value2)  Filter is not evaluated
-    until you try to iterate, get or count the results.
+    The API and usage is intended to be familiar to Django users however it does not support the complete Django
+    ModelManager API.
+
     """
 
     def __init__(self, model, finders):
@@ -25,15 +24,48 @@ class ModelManager(object):
             self.finders[tuple(sorted_field_names)] = (finders[key], field_names)
 
     def filter(self, **kw):
+        """
+        Filter models by key-value pairs.
+
+        :Example:
+
+        .. code-block:: python
+
+            Model.objects.filter(attr1=value1,attr2=value2)
+
+        How the actual HTTP request is handled is determined by :ref:`finders`.
+
+        :param kw: key value pairs of field name and value
+        :return: lazy query
+        """
         return ModelQuery(self, self.model, headers=self.headers).filter(**kw)
 
     def filter_custom(self, url):
+        """
+        Set a URL to be called when querying
+
+        :param url: full URL
+        :return: lazy query
+        """
         return ModelQuery(self, self.model, headers=self.headers).filter_custom(url)
 
     def count(self):
-        raise NoRegisteredFinderError("foo")
+        """
+        Get a count
+
+        :return: int
+        """
+        return ModelQuery(self, self.model, headers=self.headers).count()
 
     def get(self, **kw):
+        """
+        Get a single object.
+
+        This can be called directly with key-value pairs or after setting some ``filters``
+
+        :param kw:
+        :return:
+        """
         return ModelQuery(self, self.model, headers=self.headers).get(**kw)
 
 

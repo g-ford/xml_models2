@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Querying Models &mdash; XmlModels2 0.8.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="XmlModels2 0.8.1 documentation" href="index.html" />
+    <link rel="next" title="API Documentation" href="api.html" />
+    <link rel="prev" title="Mapping XML to Models" href="mapping.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="querying-models">
+<h1>Querying Models<a class="headerlink" href="#querying-models" title="Permalink to this headline">¶</a></h1>
+<p>Querying is based on Django Model querying.  Each <code class="docutils literal"><span class="pre">Model</span></code> has a class attribute <code class="docutils literal"><span class="pre">objects</span></code> which is the entry point
+for querying. However the querying ability is limited in scope and only supports very basic filtering.</p>
+<p>To do anything interesting you will need to define finders on your models.  There are no assumptions made about the nature of
+the REST API e.g. it is not even assumed that an <code class="docutils literal"><span class="pre">id</span></code> attribute can be queried.</p>
+<div class="section" id="finders">
+<span id="id1"></span><h2>Finders<a class="headerlink" href="#finders" title="Permalink to this headline">¶</a></h2>
+<p>An external REST api will present a limited number of options for querying data. Because the different options do not
+have to follow any specific convention, the model must define what finders are available and what parameters they accept.
+This still attempts to follow a Django-esque approach</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">class</span> <span class="nc">Person</span><span class="p">(</span><span class="n">xml_models</span><span class="o">.</span><span class="n">Model</span><span class="p">:</span>
+    <span class="o">...</span>
+    <span class="n">finders</span> <span class="o">=</span> <span class="p">{</span> <span class="p">(</span><span class="n">firstName</span><span class="p">,</span> <span class="n">lastName</span><span class="p">):</span> <span class="s">&quot;http://person/firstName/</span><span class="si">%s</span><span class="s">/lastName/</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="nb">id</span><span class="p">,):</span> <span class="s">&quot;http://person/</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>The above defines two query options. The following code exercises these options</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">people</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">firstName</span><span class="o">=</span><span class="s">&#39;Chris&#39;</span><span class="p">,</span> <span class="n">lastName</span><span class="o">=</span><span class="s">&#39;Tarttelin&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">people</span><span class="o">.</span><span class="n">count</span><span class="p">()</span>
+<span class="go">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">person</span> <span class="o">=</span> <span class="n">Person</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="mi">123</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">person</span><span class="o">.</span><span class="n">firstName</span>
+<span class="go">Chris</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Querying Models</a><ul>
+<li><a class="reference internal" href="#finders">Finders</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="mapping.html" title="previous chapter">Mapping XML to Models</a></li>
+      <li>Next: <a href="api.html" title="next chapter">API Documentation</a></li>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/querying.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Geoff Ford.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.6</a>
+      
+      |
+      <a href="_sources/querying.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
