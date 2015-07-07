@@ -5,8 +5,8 @@ XML is mapped to ``xml_models.Model`` via ``Fields``.  Each field requires an xp
 node or attribute to get the data from.  Each field also has an optional ``default`` value for when no value can be
 retrieved from the XML.
 
-Fields
-------
+Basic Fields
+------------
 
 TThe available field mappings are
 
@@ -18,7 +18,8 @@ TThe available field mappings are
 - :class:`OneToOneField` -- returns a ``xml_model.Model`` subclass
 - :class:`CollectionField` -- returns a collection of either one of the above types, or an ``xml_model.Model`` subclass
 
-Most of these fields are fairly self explanatory. The ``CollectionField`` field is where it gets interesting. This is what allows you to map collections of nested entities, such as:-
+Most of these fields are fairly self explanatory. The ``CollectionField`` and ``OneToOneField`` is where it gets
+interesting. This is what allows you to map instances or collections of nested entities, such as:-
 
 .. code-block:: xml
 
@@ -63,13 +64,16 @@ This leads to the usage of a person as :-
 >>> person.contacts[0].info
 me@here.com
 
+Collections
+-----------
+
 When querying collections or lists, it is assumed that a collection of zero or more results are returned wrapped in an
 enclosing collection tag.
 
 As some REST APIs may return lists wrapped in one or more layers of metadata, Models may also define
 a ``collection_node`` attribute. this allows the XML processor to find the relevant node.
 
-Note that ``collection_node`` is the tag name only and not an xpath expression.
+.. note:: ``collection_node`` is the tag name only and not an xpath expression.
 
 For example, given the following XML
 
@@ -89,7 +93,7 @@ We would need to define a Model with a ``collection_node`` like so
 .. code-block:: python
 
     class SomeModel(Model):
-      fieldA = CHarField(xpath="/some/node")
+      fieldA = CharField(xpath="/some/node")
 
       collection_node = 'collection'
 
