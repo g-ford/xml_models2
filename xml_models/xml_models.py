@@ -54,12 +54,12 @@ class IntField(BaseField):
 
 class DateField(BaseField):
     """
-    Returns the single value found by the xpath expression, as a datetime.
+    Returns the single value found by the xpath expression, as a ``datetime``.
 
-    By default, expects dates that match the ISO8601 date format.  If a date_format keyword
-    arg is supplied, that will be used instead. date_format should conform to :method:`strptime` formatting options.
+    By default, expects dates that match the ISO8601 date format.  If a ``date_format`` keyword
+    arg is supplied, that will be used instead. ``date_format`` should conform to ``strptime`` formatting options.
 
-    If the service returns UTC offsets then a TZ aware datetime object will be returned.
+    If the XML contains UTC offsets then a timezone aware datetime object will be returned.
     """
 
     def __init__(self, date_format=None, **kw):
@@ -131,6 +131,9 @@ class CollectionField(BaseField):
 
 
 class OneToOneField(BaseField):
+    """
+    Returns a subclass of :class:`Model` from the xpath expression.
+    """
     def __init__(self, field_type, **kw):
         self.field_type = field_type
         BaseField.__init__(self, **kw)

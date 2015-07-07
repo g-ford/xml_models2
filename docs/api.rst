@@ -24,3 +24,21 @@ Fields
 
 .. autoclass:: BaseField
    :members:
+
+.. autoclass:: CharField
+   :members:
+
+.. autoclass:: IntField
+   :members:
+
+.. autoclass:: FloatField
+   :members:
+
+.. autoclass:: DateField
+   :members:
+
+.. autoclass:: OneToOneField
+   :members:
+
+.. autoclass:: CollectionField
+   :members:
