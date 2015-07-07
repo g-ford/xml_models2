@@ -1,6 +1,8 @@
 [![Build Status](https://travis-ci.org/alephnullplex/xml_models2.svg?branch=master)](https://travis-ci.org/alephnullplex/xml_models2)
 [![Coverage Status](https://coveralls.io/repos/alephnullplex/xml_models2/badge.svg?branch=master)](https://coveralls.io/r/alephnullplex/xml_models2?branch=master)
 
+[Read The Docs](http://xml-models2.readthedocs.org/en/latest/)
+
 # XmlModels2
 
 XmlModels allows you to define Models similar in nature to Django models that are backed by XML endpoints rather than a
