@@ -8,6 +8,7 @@ build/
 dist/
 MANIFEST
 *.egg-info/
+_build/
 
 # Unit test / coverage reports
 htmlcov/
