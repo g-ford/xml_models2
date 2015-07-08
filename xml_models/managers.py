@@ -69,17 +69,20 @@ class ModelManager(object):
         return ModelQuery(self, self.model, headers=self.headers).get(**kw)
 
 
+# this is an internal class and should not be exposed to end users so we don't need docstrings
+# pylint: disable=missing-docstring
 class ModelQuery(object):
-    def __init__(self, manager, model, headers={}):
+    def __init__(self, manager, model, headers=None):
         self.manager = manager
         self.model = model
         self.args = {}
-        self.headers = headers
+        self.headers = headers or {}
         self.custom_url = None
 
 
-        # When calling list(query) list will call __count__ before __iter__, both of which will call _fetch & _fragments.
-        # We keep a cache of fetched URLs and parsed out fragments so as to prevent fetching and parsing the tree twice.
+        # When calling list(query) list will call __count__ before __iter__, both of which will call _fetch &
+        # _fragments. We keep a cache of fetched URLs and parsed out fragments so as to prevent fetching and parsing
+        # the tree twice.
         self.__fragment_cache = []
         self.__fetch_cache = {}
 
@@ -141,12 +144,12 @@ class ModelQuery(object):
         node_to_find = getattr(self.model, 'collection_node', None)
         tree = etree.iterparse(xml, ['start', 'end'])
 
-        evt, child = next(tree)
+        _, child = next(tree)
 
         while node_to_find and child.tag != node_to_find:
-            evt, child = next(tree)
+            _, child = next(tree)
 
-        evt, child = next(tree)
+        _, child = next(tree)
 
         node_name = child.tag
         for event, elem in tree:

@@ -1,1 +1,1 @@
-from .xml_models import *
+from xml_models.xml_models import *
