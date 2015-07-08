@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+
 import datetime
 from xml_models import xpath_finder
 from xml_models.managers import ModelManager

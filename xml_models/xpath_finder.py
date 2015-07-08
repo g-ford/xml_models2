@@ -8,6 +8,8 @@ if sys.version < '3':
         Fake unicode function
         """
         import codecs
+        if not string:
+            return
         return codecs.unicode_escape_decode(string)[0]
 else:
     def unicode(string):
