@@ -42,17 +42,17 @@ class Client(object):
         self._creds = credentials
     
     def GET(self, url, headers={}):
-        return self._make_request(url, 'GET', None, headers)
-        
+        return self._make_request(url, 'get', None, headers)
+
     def PUT(self, url, payload=None, headers={}):
-        return self._make_request(url, 'PUT', payload, headers)
-        
+        return self._make_request(url, 'put', payload, headers)
+
     def POST(self, url, payload=None, headers={}):
-        return self._make_request(url, 'POST', payload, headers)
-        
+        return self._make_request(url, 'post', payload, headers)
+
     def DELETE(self, url, payload=None, headers={}):
-            return self._make_request(url, 'DELETE', payload, headers)
-    
+        return self._make_request(url, 'delete', payload, headers)
+
     def _make_request(self, url, method, payload, headers):
         response = getattr(requests, method)(self.base_url + url, headers=headers, data=payload, auth=self._cred)
         return Response(self.base_url + url, response.status_code, response.headers, response.text)
@@ -66,7 +66,7 @@ class Response(object):
         self._headers = dict(headers)
         self._content = content
         
-    url = property(fget=lambda : self._url, doc="The url this response was returned from")
+    url = property(fget=lambda self: self._url, doc="The url this response was returned from")
     response_code = property(fget=lambda self : self._response_code, doc="The response code returned from the call")
     headers = property(fget=lambda self : self._headers, doc="The headers returned in the response")
     content = property(fget=lambda self : self._content, doc="The response body, as a string, returned from the call")
