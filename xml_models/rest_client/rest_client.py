@@ -54,7 +54,7 @@ class Client(object):
         return self._make_request(url, 'delete', payload, headers)
 
     def _make_request(self, url, method, payload, headers):
-        response = getattr(requests, method)(self.base_url + url, headers=headers, data=payload, auth=self._cred)
+        response = getattr(requests, method)(self.base_url + url, headers=headers, data=payload, auth=self._creds)
         return Response(self.base_url + url, response.status_code, response.headers, response.text)
         
 class Response(object):
