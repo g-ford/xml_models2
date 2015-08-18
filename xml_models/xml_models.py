@@ -318,7 +318,7 @@ class Model(with_metaclass(ModelBase)):
         parts = [x for x in xpath.split('/') if x != '' and x[0] != '@']
         xpath = ''
         for part in parts[:-1]:  # save the last node
-            xpath += '/' + part
+            xpath += '/RrootR/' + part
             nodes = tree.xpath(xpath)
 
             if not nodes:
