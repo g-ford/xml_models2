@@ -150,7 +150,7 @@ class BaseModelTestCases(unittest.TestCase):
         m.address = "Test Address"
         m.country = "Test Country"
         self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<entry><address>Test Address</address><country>Test Country</country>\n')
+                         '<entry><country>Test Country</country><address>Test Address</address></entry>\n')
 
 def strip_whitespace(xml):
     import re
