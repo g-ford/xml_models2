@@ -15,16 +15,24 @@ class Muppet(xml_models.Model):
 class CollectionModel(xml_models.Model):
     names = xml_models.CollectionField(xml_models.CharField, xpath='/root/names/name')
 
+
 class ModelB(xml_models.Model):
-            name = xml_models.CharField(xpath='/modelb/name')
+    name = xml_models.CharField(xpath='/modelb/name')
+
 
 class ModelA(xml_models.Model):
     name = xml_models.CharField(xpath='/root/name')
     modelb = xml_models.OneToOneField(ModelB, xpath='/root/modelb')
 
+
 class ModelC(xml_models.Model):
     name = xml_models.CharField(xpath='/root/name')
     modelb = xml_models.CollectionField(ModelB, xpath='/root/modelbs/modelb')
+
+
+class ListModel(xml_models.Model):
+    address = xml_models.CharField(xpath='/entry/address')
+    country = xml_models.CharField(xpath='/entry/country')
 
 
 class BaseModelTestCases(unittest.TestCase):
@@ -136,6 +144,13 @@ class BaseModelTestCases(unittest.TestCase):
         m.modelb.append(new_b)
         self.assertEqual(strip_whitespace(m.to_xml()),
                          '<root><name>Model 1</name><modelbs><modelb><name>Model 2</name></modelb><modelb><name>New B</name></modelb></modelbs></root>\n')
+
+    def test_can_generate_multiple_node_xml(self):
+        m = ListModel()
+        m.address = "Test Address"
+        m.country = "Test Country"
+        self.assertEqual(strip_whitespace(m.to_xml()),
+                         '<entry><address>Test Address</address><country>Test Country</country>\n')
 
 def strip_whitespace(xml):
     import re
