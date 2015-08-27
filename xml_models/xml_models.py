@@ -306,17 +306,19 @@ class Model(with_metaclass(ModelBase)):
         old_tree = self._get_tree().xpath(field.xpath)[0]
         self._get_tree().replace(old_tree, new_tree)
 
-    def _create_from_xpath(self, xpath, tree, value=None):
+    def _create_from_xpath(self, xpath, tree, value=None, extra_root_name=None):
         """
         Generates XML under `tree` that will satisfy `xpath`.  Will pre-populate `value` if given
         :param xpath: simple xpath only. Does not handle attributes, indexing etc.
         :param tree: parent tree
         :param value:
+        :param value:
+        :param extra_root_name: extra root node added for helping generating xml
         :return: Element node
         """
         # not handling attribute
         parts = [x for x in xpath.split('/') if x != '' and x[0] != '@']
-        xpath = ''
+        xpath = '' if extra_root_name is None else '/' + extra_root_name
         for part in parts[:-1]:  # save the last node
             xpath += '/' + part
             nodes = tree.xpath(xpath)
@@ -397,7 +399,7 @@ class Model(with_metaclass(ModelBase)):
             # create a fake root node that will get stripped off later
             tree = etree.Element('RrootR')
             for field in self._cache:
-                self._create_from_xpath(field.xpath, tree)
+                self._create_from_xpath(field.xpath, tree, extra_root_name='RrootR')
             self._xml = etree.tostring(tree[0])
 
         return self._xml
