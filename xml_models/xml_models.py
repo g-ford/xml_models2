@@ -387,7 +387,12 @@ class Model(with_metaclass(ModelBase)):
         elif isinstance(field, OneToOneField):
             self._update_subtree(field)
         else:
-            self._get_tree().xpath(field.xpath)[0].text = str(getattr(self, field._name))
+            node = self._get_tree().xpath(field.xpath)
+            value = str(getattr(self, field._name))
+            if node:
+                node[0].text = value
+            else:
+                self._create_from_xpath(field.xpath, self._get_tree(), value)
 
     def _get_tree(self):
         if self._dom is None:

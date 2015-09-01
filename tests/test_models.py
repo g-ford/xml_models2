@@ -51,6 +51,21 @@ class BaseModelTestCases(unittest.TestCase):
         self.muppet.name = 'Fozzie'
         self.assertEquals('Fozzie', self.muppet.name)
 
+    def test_can_handle_missing_nodes(self):
+        # missing the value node for muppets name
+        m = Muppet(
+            """<root>
+                <kiddie>
+                    <friends>
+                      <friend>Fozzie</friend>
+                    </friends>
+                </kiddie>
+            </root>""")
+        m.name = "Gonzo"
+        self.assertEqual('Gonzo', m.name)
+        self.assertTrue('Gonzo' in m.to_xml())
+
+
     def test_may_validate_on_load(self):
         Muppet.validate_on_load = Mock(return_value=True)
         Muppet()
