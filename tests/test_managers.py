@@ -62,6 +62,19 @@ class QueryManagerTestCases(unittest.TestCase):
 
 
     @patch.object(rest_client.Client, "GET")
+    def test_rasies_error_if_api_fails(self, mock_get):
+        class api:
+            content = None
+
+        mock_get.return_value = api()
+
+        with self.assertRaises(DoesNotExist):
+            SimpleModel.objects.filter(field1="hello").count()
+
+        with self.assertRaises(DoesNotExist):
+            SimpleModel.objects.get(field1="hello")
+
+    @patch.object(rest_client.Client, "GET")
     def test_filtering_for_a_registered_finder(self, mock_get):
         class api:
             content = "<root><field1>Hello</field1></root>"

@@ -142,6 +142,9 @@ class ModelQuery(object):
                 yield item
             return
 
+        if not xml:
+            raise DoesNotExist(self.model, self.args)
+
         try:
             from StringIO import StringIO
         except ImportError:
