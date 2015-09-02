@@ -114,9 +114,10 @@ class ModelQuery(object):
         if not response.content or response.response_code == 404:
             raise DoesNotExist(self.model, self.args)
 
-        content = response.content.read()
-        if not content:
+        if not response.content:
             raise DoesNotExist(self.model, self.args)
+
+        content = response.content
 
         node_to_find = getattr(self.model, 'collection_node', None)
         if node_to_find:
@@ -141,9 +142,16 @@ class ModelQuery(object):
                 yield item
             return
 
-        node_to_find = getattr(self.model, 'collection_node', None)
-        tree = etree.iterparse(xml, ['start', 'end'])
+        if not xml:
+            raise DoesNotExist(self.model, self.args)
 
+        try:
+            from StringIO import StringIO
+        except ImportError:
+            from io import BytesIO as StringIO
+
+        node_to_find = getattr(self.model, 'collection_node', None)
+        tree = etree.iterparse(StringIO(xml.encode()), ['start', 'end'])
         _, child = next(tree)
 
         while node_to_find and child.tag != node_to_find:
