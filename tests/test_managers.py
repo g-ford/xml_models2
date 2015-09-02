@@ -1,10 +1,5 @@
 import unittest
 from xml_models.xpath_finder import MultipleNodesReturnedException
-
-try:
-    from StringIO import StringIO
-except ImportError:
-    from io import BytesIO as StringIO
 from mock import patch
 import xml_models
 from xml_models.managers import ModelQuery, NoRegisteredFinderError, DoesNotExist
@@ -69,7 +64,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_filtering_for_a_registered_finder(self, mock_get):
         class api:
-            content = StringIO("<root><field1>Hello</field1></root>".encode())
+            content = "<root><field1>Hello</field1></root>"
 
         mock_get.return_value = api()
         count = SimpleModel.objects.filter(field1="hello").count()
@@ -79,7 +74,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_manager_counts_child_nodes_when_filtering_a_collection_of_results(self, mock_get):
         class api:
-            content = StringIO("<collection><root><field1>hello</field1></root><root><field1>goodbye</field1></root></collection>".encode())
+            content = "<collection><root><field1>hello</field1></root><root><field1>goodbye</field1></root></collection>"
 
         mock_get.return_value = api()
         count = SimpleModel.objects.filter(field1="baz").count()
@@ -89,7 +84,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_get_a_registered_finder(self, mock_get):
         class api:
-            content = StringIO("<root><field1>Hello</field1></root>".encode())
+            content = "<root><field1>Hello</field1></root>"
             response_code = 200
 
         mock_get.return_value = api()
@@ -99,7 +94,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_get_for_a_multi_field_registered_finder(self, mock_get):
         class api:
-            content = StringIO("<root><field1>Hello</field1></root>".encode())
+            content = "<root><field1>Hello</field1></root>"
             response_code = 200
 
         mock_get.return_value = api()
@@ -110,7 +105,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_accepts_strings_as_finder_keys(self, mock_get):
         class api:
-            content = StringIO("<root><field1>Hello</field1></root>".encode())
+            content = "<root><field1>Hello</field1></root>"
             response_code = 200
 
         mock_get.return_value = api()
@@ -122,7 +117,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_raises_error_when_repsonse_empty(self, mock_get):
         class api:
-            content = StringIO(''.encode())
+            content = ''
             response_code = 200
         mock_get.return_value = api()
 
@@ -132,7 +127,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_raises_error_when_response_code_404(self, mock_get):
         class api:
-            content = StringIO('<HTML><body>Nothing to see here</body></HTML>'.encode())
+            content = '<HTML><body>Nothing to see here</body></HTML>'
             response_code = 404
         mock_get.return_value = api()
 
@@ -143,7 +138,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_returns_iterator_for_collection_of_results(self, mock_get):
         class api:
-            content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
+            content = "<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>"
         mock_get.return_value = api()
         qry = SimpleModel.objects.filter(field1="baz")
         results = []
@@ -156,7 +151,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_can_use_custom_query(self, mock_get):
         class api:
-            content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
+            content = "<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>"
             response_code = 200
         mock_get.return_value = api()
 
@@ -167,7 +162,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_returns_iterator_for_collection_of_results_from_custom_query(self, mock_get):
         class api:
-            content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
+            content = "<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>"
         mock_get.return_value = api()
         qry = SimpleModel.objects.filter_custom("http://hard_coded_url")
         results = []
@@ -180,7 +175,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_supports_listifying(self, mock_get):
         class api:
-            content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
+            content = "<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>"
         mock_get.return_value = api()
         qry = SimpleModel.objects.filter_custom("http://hard_coded_url")
         results = list(qry)
@@ -191,7 +186,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_returns_count_of_collection_of_results_when_len_is_called(self, mock_get):
         class api:
-            content = StringIO("<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>".encode())
+            content = "<elems><root><field1>hello</field1></root><root><field1>goodbye</field1></root></elems>"
         mock_get.return_value = api()
         qry = SimpleModel.objects.filter(field1="baz")
         self.assertEquals(2, len(qry))
@@ -199,7 +194,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_can_specify_collection_node_when_get(self, mock_get):
         class api:
-            content = StringIO("<response><metadata /><elems><root><field1>hello</field1></root></elems></response>".encode())
+            content = "<response><metadata /><elems><root><field1>hello</field1></root></elems></response>"
             response_code = 200
         mock_get.return_value = api()
 
@@ -210,7 +205,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_get_with_multiple_collection_node_results_raises(self, mock_get):
         class api:
-            content = StringIO("<response><metadata /><elems><root><field1>hello</field1></root><root><field1>hello</field1></root></elems></response>".encode())
+            content = "<response><metadata /><elems><root><field1>hello</field1></root><root><field1>hello</field1></root></elems></response>"
             response_code = 200
         mock_get.return_value = api()
 
@@ -221,7 +216,7 @@ class QueryManagerTestCases(unittest.TestCase):
     @patch.object(rest_client.Client, "GET")
     def test_can_specify_collection_node_when_filtering(self, mock_get):
         class api:
-            content = StringIO("<response><metadata /><elems><root><field1>hello</field1></root></elems></response>".encode())
+            content = "<response><metadata /><elems><root><field1>hello</field1></root></elems></response>"
             response_code = 200
         mock_get.return_value = api()
 
