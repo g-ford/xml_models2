@@ -11,7 +11,7 @@ except(IOError, ImportError):
 
 setup(
     name='xml_models2',
-    version='0.8.0',
+    version='0.9.0',
     description='XML backed models queried from external REST apis',
     long_description=long_description,
     author='Geoff Ford and Chris Tarttelin and Cam McHugh',
