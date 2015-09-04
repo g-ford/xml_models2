@@ -1,5 +1,5 @@
 from __future__ import absolute_import
-from xml_models import VERIFY
+import xml_models
 import xml_models.rest_client as rest_client
 from lxml import etree
 from xml_models.xpath_finder import MultipleNodesReturnedException
@@ -134,7 +134,7 @@ class ModelQuery(object):
         # the caching here may be better handled with requests caching?
         url = self._find_query_path()
         if not url in self.__fetch_cache:
-            self.__fetch_cache[url] = rest_client.Client("", verify=VERIFY).GET(url, headers=self.headers)
+            self.__fetch_cache[url] = rest_client.Client("", verify=xml_models.VERIFY).GET(url, headers=self.headers)
         return self.__fetch_cache[url]
 
     def _fragments(self, xml):
