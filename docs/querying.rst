@@ -33,3 +33,18 @@ The above defines two query options. The following code exercises these options
     >>> person = Person.objects.get(id=123)
     >>> person.firstName
     Chris
+
+
+Self-signed HTTPS Endpoints
+----
+
+Self-signed, or endpoints signed by a non-standard CA, are supported by setting ``xml_models.VERIFY`` as per the requests
+documentation for [SSL certificate verification](http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification).
+
+For example, to not verify a self-signed certificate you can use the following:
+
+.. code-block:: python
+    >>> import xml_models
+    >>> xml_models.VERIFY = False
+
+

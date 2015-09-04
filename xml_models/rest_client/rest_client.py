@@ -37,9 +37,10 @@ class Client(object):
     optionally a tuple containing username and password for use as basic 
     auth.  
     """
-    def __init__(self, base_url, credentials=(None, None)):
+    def __init__(self, base_url, credentials=(None, None), verify=True):
         self.base_url = base_url or ""
         self._creds = credentials
+        self.verify = verify
     
     def GET(self, url, headers={}):
         return self._make_request(url, 'get', None, headers)
@@ -54,7 +55,11 @@ class Client(object):
         return self._make_request(url, 'delete', payload, headers)
 
     def _make_request(self, url, method, payload, headers):
-        response = getattr(requests, method)(self.base_url + url, headers=headers, data=payload, auth=self._creds)
+        response = getattr(requests, method)(self.base_url + url,
+                                             headers=headers,
+                                             data=payload,
+                                             auth=self._creds,
+                                             verify=self.verify)
         return Response(self.base_url + url, response.status_code, response.headers, response.text)
         
 class Response(object):
