@@ -160,9 +160,15 @@ class ModelQuery(object):
 
         _, child = next(tree)
 
-        node_name = child.tag
+        node_stack = [child.tag]
         for event, elem in tree:
-            if event == 'end' and elem.tag == node_name:
+            if event == 'start':
+                node_stack.append(elem.tag)
+            if event == 'end':
+                if len(node_stack) == 0:
+                    continue  # we've gone past our collection node into the parent nodes
+                node_stack.pop()
+            if event == 'end' and len(node_stack) == 0:
                 result = etree.tostring(elem)
                 elem.clear()
                 self.__fragment_cache.append(result)
