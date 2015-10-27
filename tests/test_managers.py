@@ -216,6 +216,37 @@ class QueryManagerTestCases(unittest.TestCase):
         self.assertEqual('hello', qry.field1)
 
     @patch.object(rest_client.Client, "GET")
+    def test_can_specify_non_unique_collection_node_when_get(self, mock_get):
+
+        class SubGroup(xml_models.Model):
+            name = xml_models.CharField(xpath="/entry/@name")
+
+        class Group(xml_models.Model):
+            name = xml_models.CharField(xpath="/entry/@name")
+            subgroups = xml_models.CollectionField(SubGroup, xpath="/entry/subgroups")
+
+            collection_node = 'groups'
+
+            finders = {(): 'http://example.com'}
+
+        class api:
+            content = """
+            <groups>
+              <entry name="Group1">
+                <subgroups>
+                  <entry name="Subgroup1" />
+                  <entry name="Subgroup2" />
+                </subgroups>
+              </entry>
+            </groups>
+            """
+            response_code = 200
+        mock_get.return_value = api()
+
+        qry = list(Group.objects.filter())
+        self.assertEqual('Group1', qry[0].name)
+
+    @patch.object(rest_client.Client, "GET")
     def test_get_with_multiple_collection_node_results_raises(self, mock_get):
         class api:
             content = "<response><metadata /><elems><root><field1>hello</field1></root><root><field1>hello</field1></root></elems></response>"
