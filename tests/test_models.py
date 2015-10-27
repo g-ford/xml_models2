@@ -69,7 +69,7 @@ class BaseModelTestCases(unittest.TestCase):
     def test_may_validate_on_load(self):
         Muppet.validate_on_load = Mock(return_value=True)
         Muppet()
-        Muppet.validate_on_load.assert_called_once
+        self.assertTrue(Muppet.validate_on_load.called)
 
     def test_has_a_django_style_objects_attr(self):
         self.assertTrue(hasattr(self.muppet, 'objects'))

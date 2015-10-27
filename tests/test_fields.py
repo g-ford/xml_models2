@@ -55,7 +55,7 @@ class CharFieldTests(unittest.TestCase):
         field = xml_models.CharField(xpath='/root/kiddie/char')
         response = field.parse(XML, None)
 
-        mock_base.assert_called_once
+        self.assertTrue(mock_base.called)
 
 
 class IntFieldTests(unittest.TestCase):
@@ -64,7 +64,7 @@ class IntFieldTests(unittest.TestCase):
         field = xml_models.CharField(xpath='/root/kiddie/int')
         response = field.parse(XML, None)
 
-        mock_base.assert_called_once
+        self.assertTrue(mock_base.called)
 
     def test_casts_to_int(self):
         field = xml_models.IntField(xpath='/root/kiddie/int')
@@ -88,7 +88,7 @@ class FloatFieldTests(unittest.TestCase):
         field = xml_models.FloatField(xpath='/root/kiddie/int')
         response = field.parse(XML, None)
 
-        mock_base.assert_called_once
+        self.assertTrue(mock_base.called)
 
     def test_casts_to_int(self):
         field = xml_models.FloatField(xpath='/root/kiddie/float')
@@ -107,7 +107,7 @@ class BoolFieldTests(unittest.TestCase):
         field = xml_models.BoolField(xpath='/root/kiddie/bools/@many')
         response = field.parse(XML, None)
 
-        mock_base.assert_called_once
+        self.assertTrue(mock_base.called)
 
     def test_can_cast_trues(self):
         field = xml_models.BoolField(xpath='/root/kiddie/bools/@many')
@@ -127,7 +127,7 @@ class DateFieldTests(unittest.TestCase):
         field = xml_models.DateField(xpath='/root/kiddie/bools/@many')
         response = field.parse(XML, None)
 
-        mock_base.assert_called_once
+        self.assertTrue(mock_base.called)
 
     def test_parses_basic_format(self):
         xml_string = '<root><kiddie><value>2008-06-21T10:36:12</value></kiddie></root>'
