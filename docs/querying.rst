@@ -34,12 +34,13 @@ The above defines two query options. The following code exercises these options
     >>> person.firstName
     Chris
 
+.. note:: You can define a default finder using an empty tuple.
 
 Self-signed HTTPS Endpoints
 ----
 
 Self-signed, or endpoints signed by a non-standard CA, are supported by setting ``xml_models.VERIFY`` as per the requests
-documentation for [SSL certificate verification](http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification).
+documentation for `SSL certificate verification <http://docs.python-requests.org/en/latest/user/advanced/#ssl-cert-verification`_.
 
 For example, to not verify a self-signed certificate you can use the following:
 

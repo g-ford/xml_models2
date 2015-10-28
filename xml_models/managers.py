@@ -45,6 +45,23 @@ class ModelManager(object):
         """
         return ModelQuery(self, self.model, headers=self.headers).filter(**kw)
 
+    def all(self, **kw):
+        """
+        Get all models.
+
+        :Example:
+
+        .. code-block:: python
+
+            Model.objects.all()
+
+        How the actual HTTP request is handled is determined by :ref:`finders`.
+
+        :param kw: optional key value pairs of field name and value
+        :return: lazy query
+        """
+        return ModelQuery(self, self.model, headers=self.headers).filter(**kw)
+
     def filter_custom(self, url):
         """
         Set a URL to be called when querying

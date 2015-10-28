@@ -8,7 +8,7 @@ retrieved from the XML.
 Basic Fields
 ------------
 
-TThe available field mappings are
+The available field mappings are
 
 - :class:`CharField` -- returns string data
 - :class:`IntField` -- returns integers
@@ -97,3 +97,40 @@ We would need to define a Model with a ``collection_node`` like so
 
       collection_node = 'collection'
 
+
+
+Nested Collections
+------------------
+
+Similarly with Collections there may be a need where you have collections nested in metadata objects that are not
+relevant.
+
+For example, given the following XML, you may only be interested in the Models.  Rather than having to create a
+Collection model as well you can create a collection from the nested XML using the ``collection_xpath`` attribute.
+
+.. code-block:: xml
+
+    <reponse status="200">
+      <metadata count="2">
+      <collection name="Collection1">
+        <model ... />
+        <model ... />
+      </collection>
+      <collection name="Collection2">
+        <model ... />
+        <model ... />
+      </collection>
+      </metadata>
+    </response>
+
+.. code-block:: python
+
+    class SomeModel(Model):
+      fieldA = CharField(xpath="/model/some/node")
+
+      collection_xpath = '//collection/model'
+
+.. note:: ``collection_xpath`` will pass the enclosing tag XML to the Model.  Therefore your models field definitions
+should start with the last tag name in the ``collection_xpath`` as the example does with the ``model`` tag.
+
+.. note:: ``collection_node`` and ``collection_xpath`` are mutually exclusive
