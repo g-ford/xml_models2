@@ -16,7 +16,7 @@ setup(
     long_description=long_description,
     author='Geoff Ford and Chris Tarttelin and Cam McHugh',
     author_email='g_ford@hotmail.ccom',
-    url='http://github.com/alephnullplex/xml_models',
+    url='http://github.com/alephnullplex/xml_models2',
     packages=['xml_models', 'xml_models.rest_client'],
     install_requires=['lxml', 'python-dateutil', 'pytz', 'future', 'requests'],
     tests_require=['mock', 'nose', 'coverage'],
