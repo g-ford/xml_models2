@@ -226,7 +226,6 @@ class QueryManagerTestCases(unittest.TestCase):
             subgroups = xml_models.CollectionField(SubGroup, xpath="/entry/subgroups")
 
             collection_node = 'groups'
-
             finders = {(): 'http://example.com'}
 
         class api:
@@ -245,6 +244,33 @@ class QueryManagerTestCases(unittest.TestCase):
 
         qry = list(Group.objects.filter())
         self.assertEqual('Group1', qry[0].name)
+
+    @patch.object(rest_client.Client, "GET")
+    def test_can_specify_nested_xpath_collection(self, mock_get):
+
+        class Group(xml_models.Model):
+            name = xml_models.CharField(xpath="/entry/@name")
+
+            collection_xpath = '/groups/entry/subgroups/entry'
+            finders = {(): 'http://example.com'}
+
+        class api:
+            content = """
+            <groups>
+              <entry name="Group1">
+                <subgroups>
+                  <entry name="Subgroup1" />
+                  <entry name="Subgroup2" />
+                </subgroups>
+              </entry>
+            </groups>
+            """
+            response_code = 200
+        mock_get.return_value = api()
+
+        qry = list(Group.objects.filter())
+        self.assertEqual(len(qry), 2)
+        self.assertEqual('Subgroup1', qry[0].name)
 
     @patch.object(rest_client.Client, "GET")
     def test_get_with_multiple_collection_node_results_raises(self, mock_get):

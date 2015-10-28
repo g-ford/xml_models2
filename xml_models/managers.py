@@ -3,6 +3,10 @@ import xml_models
 import xml_models.rest_client as rest_client
 from lxml import etree
 from xml_models.xpath_finder import MultipleNodesReturnedException
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import BytesIO as StringIO
 
 
 class ModelManager(object):
@@ -146,10 +150,12 @@ class ModelQuery(object):
         if not xml:
             raise DoesNotExist(self.model, self.args)
 
-        try:
-            from StringIO import StringIO
-        except ImportError:
-            from io import BytesIO as StringIO
+        xpath_to_find = getattr(self.model, 'collection_xpath', None)
+        if xpath_to_find:
+            tree = etree.parse(StringIO(xml.encode()))
+            for node in tree.xpath(xpath_to_find):
+                yield etree.tostring(node)
+            return
 
         node_to_find = getattr(self.model, 'collection_node', None)
         tree = etree.iterparse(StringIO(xml.encode()), ['start', 'end'])
