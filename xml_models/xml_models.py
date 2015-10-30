@@ -276,13 +276,13 @@ class Model(with_metaclass(ModelBase)):
             self._update_field(field)
         return self._get_tree()
 
-    def to_xml(self):
+    def to_xml(self, pretty=False):
         """
         XML representation of Model
 
         :rtype: string
         """
-        return etree.tostring(self.to_tree(), pretty_print=True).decode('UTF-8')
+        return etree.tostring(self.to_tree(), pretty_print=pretty).decode('UTF-8')
 
     def _update_attribute(self, field):
         """

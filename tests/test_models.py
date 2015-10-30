@@ -38,14 +38,7 @@ class ListModel(xml_models.Model):
 class BaseModelTestCases(unittest.TestCase):
     def setUp(self):
         self.muppet = Muppet(
-            """<root>
-                <kiddie>
-                    <value>Gonzo</value>
-                    <friends>
-                      <friend>Fozzie</friend>
-                    </friends>
-                </kiddie>
-            </root>""")
+            "<root><kiddie><value>Gonzo</value><friends><friend>Fozzie</friend></friends></kiddie></root>")
 
     def test_fields_are_settable(self):
         self.muppet.name = 'Fozzie'
@@ -83,29 +76,17 @@ class BaseModelTestCases(unittest.TestCase):
     def test_will_generate_an_xml_template(self):
         m = ModelB()  # no xml given
         m.name = 'Test'
-        self.assertEqual(strip_whitespace(m.to_xml()), '<modelb><name>Test</name></modelb>\n')
+        self.assertEqual(m.to_xml(), '<modelb><name>Test</name></modelb>')
 
     def test_can_get_xml_back_out(self):
-        self.assertEqual(strip_whitespace(self.muppet.to_xml()), strip_whitespace("""<root>
-        <kiddie>
-            <value>Gonzo</value>
-            <friends>
-              <friend>Fozzie</friend>
-            </friends>
-        </kiddie>
-    </root>""") + "\n")
+        self.assertEqual(self.muppet.to_xml(),
+                         "<root><kiddie><value>Gonzo</value><friends><friend>Fozzie</friend></friends></kiddie></root>")
 
 
     def test_can_get_altered_xml_back_out(self):
         self.muppet.name = 'Kermit'
-        self.assertEqual(strip_whitespace(self.muppet.to_xml()), strip_whitespace("""<root>
-        <kiddie>
-            <value>Kermit</value>
-            <friends>
-              <friend>Fozzie</friend>
-            </friends>
-        </kiddie>
-    </root>""") + "\n")
+        self.assertEqual(self.muppet.to_xml(),
+                         "<root><kiddie><value>Kermit</value><friends><friend>Fozzie</friend></friends></kiddie></root>")
 
     def test_can_get_altered_attributes_xml_back_out(self):
         class AttrModel(xml_models.Model):
@@ -113,64 +94,60 @@ class BaseModelTestCases(unittest.TestCase):
 
         m = AttrModel('<root><child><value count="1">Fred</value></child></root>')
         m.field1 = 2
-        self.assertEqual(strip_whitespace(m.to_xml()), '<root><child><value count="2">Fred</value></child></root>\n')
+        self.assertEqual(m.to_xml(), '<root><child><value count="2">Fred</value></child></root>')
 
     def test_can_get_altered_submodels_xml_back_out(self):
         m = ModelA('<root><name>Model 1</name><modelb><name>Model 2</name></modelb></root>')
         m.name = 'Model One'
         m.modelb.name = 'Model Two'
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><name>Model One</name><modelb><name>Model Two</name></modelb></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><name>Model One</name><modelb><name>Model Two</name></modelb></root>')
 
     def test_can_get_altered_collection_xml_back_out(self):
         m = CollectionModel('<root><names><name>Model 1</name><name>Model 2</name></names></root>')
         m.names[0] = 'Model One'
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><names><name>Model One</name><name>Model 2</name></names></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><names><name>Model One</name><name>Model 2</name></names></root>')
 
     def test_can_get_removed_collection_xml_back_out(self):
         m = CollectionModel('<root><names><name>Model 1</name><name>Model 2</name></names></root>')
         self.assertEqual(2, len(m.names))
         del m.names[1]
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><names><name>Model 1</name></names></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><names><name>Model 1</name></names></root>')
 
     def test_can_get_appended_collection_xml_back_out(self):
         m = CollectionModel('<root><names><name>Model 1</name></names></root>')
         m.names.append('Model 2')
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><names><name>Model 1</name><name>Model 2</name></names></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><names><name>Model 1</name><name>Model 2</name></names></root>')
 
     def test_can_get_model_collection_xml_back_out(self):
         m = ModelC('<root><name>Model 1</name><modelb><name>Model 2</name></modelb></root>')
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><name>Model 1</name><modelb><name>Model 2</name></modelb></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><name>Model 1</name><modelb><name>Model 2</name></modelb></root>')
 
     def test_can_get_removed_model_collection_xml_back_out(self):
         m = ModelC('<root><name>Model 1</name><modelbs><modelb><name>Model 2</name></modelb></modelbs></root>')
         del m.modelb[0]
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><name>Model 1</name><modelbs/></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><name>Model 1</name><modelbs/></root>')
 
     def test_can_get_appended_model_collection_xml_back_out(self):
         m = ModelC('<root><name>Model 1</name><modelbs><modelb><name>Model 2</name></modelb></modelbs></root>')
         new_b = ModelB()
         new_b.name = "New B"
         m.modelb.append(new_b)
-        self.assertEqual(strip_whitespace(m.to_xml()),
-                         '<root><name>Model 1</name><modelbs><modelb><name>Model 2</name></modelb><modelb><name>New B</name></modelb></modelbs></root>\n')
+        self.assertEqual(m.to_xml(),
+                         '<root><name>Model 1</name><modelbs><modelb><name>Model 2</name></modelb><modelb><name>New B</name></modelb></modelbs></root>')
 
     def test_can_generate_multiple_node_xml(self):
         m = ListModel()
         m.address = "Test Address"
         m.country = "Test Country"
 
-        self.assertRegexpMatches(strip_whitespace(m.to_xml()),
-                                 '<entry><(address|country)>.*</(address|country)><(address|country)>.*</(address|country)></entry>\n')
+        self.assertRegexpMatches(m.to_xml(),
+                                 '<entry><(address|country)>.*</(address|country)><(address|country)>.*</(address|country)></entry>')
         # self.assertEqual(strip_whitespace(m.to_xml()),
         #                  '<entry><address>Test Address</address><country>Test Country</country></entry>\n')
 
-def strip_whitespace(xml):
-    import re
-
-    return re.sub('>\s*<', '><', xml)

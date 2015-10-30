@@ -168,30 +168,26 @@ class ModelQuery(object):
             raise DoesNotExist(self.model, self.args)
 
         xpath_to_find = getattr(self.model, 'collection_xpath', None)
+        node_to_find = getattr(self.model, 'collection_node', None)
+        if node_to_find:
+            xpath_to_find = '//' + node_to_find
         if xpath_to_find:
             tree = etree.parse(StringIO(xml.encode()))
             for node in tree.xpath(xpath_to_find):
-                yield etree.tostring(node)
+                if node.getchildren():
+                    for n in node.getchildren():
+                        yield etree.tostring(n)
+                else:
+                    yield etree.tostring(node)
             return
 
-        node_to_find = getattr(self.model, 'collection_node', None)
+        # no collection node/xpath
         tree = etree.iterparse(StringIO(xml.encode()), ['start', 'end'])
-        _, child = next(tree)
-
-        while node_to_find and child.tag != node_to_find:
-            _, child = next(tree)
-
-        _, child = next(tree)
-
-        node_stack = [child.tag]
+        _, child = next(tree)  # assume there is a wrapper tag
+        _, child = next(tree)  # this is the tag we care about
+        node_name = child.tag
         for event, elem in tree:
-            if event == 'start':
-                node_stack.append(elem.tag)
-            if event == 'end':
-                if len(node_stack) == 0:
-                    continue  # we've gone past our collection node into the parent nodes
-                node_stack.pop()
-            if event == 'end' and len(node_stack) == 0:
+            if event == 'end' and elem.tag == node_name:
                 result = etree.tostring(elem)
                 elem.clear()
                 self.__fragment_cache.append(result)
